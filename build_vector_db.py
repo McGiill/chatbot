@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 # do it
 load_dotenv()
 api_key=os.getenv("OPENAI_API_KEY")
-client=OpenAI(api_key=api_key)
+client=OpenAI(api_key=api_key) 
 
 # 매 실행 시 DB 폴더를 삭제 후 새로 생성
 def init_db(db_path="./chroma_db"):
@@ -40,26 +40,27 @@ def get_embedding(text, model="text-embedding-3-large"):
     return embedding
     
 
-# 문서 청크 단위로 나누기
-def chunk_text(text, chunk_size=400, chunk_overlap=50):
-    # do it 
-    chunks=[]
-    start=0
-    while start<len(text):
-        end=start+chunk_size
-        chunk=text[start:end]
-        chunks.append(chunk)
-        start=end-chunk_overlap
+# # 문서 청크 단위로 나누기
+# def chunk_text(text, chunk_size=400, chunk_overlap=50):
+#     # do it 
+#     chunks=[]
+#     start=0
+#     while start<len(text):
+#         end=start+chunk_size
+#         chunk=text[start:end]
+#         chunks.append(chunk)
+#         start=end-chunk_overlap
 
-        if start<0:
-            start=0
+#         if start<0:
+#             start=0
 
-        if start>=len(text):
-            break
+#         if start>=len(text):
+#             break
 
-    return chunks
+#     return chunks
 
 
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 # 문서로드 -> 청크 나누고 -> 임베딩 생성 후 DB 삽입
 if __name__ == "__main__":
@@ -72,9 +73,14 @@ if __name__ == "__main__":
     docs = load_text_files(folder_path)
     # do it
 
+    text_splitter = RecursiveCharacterTextSplitter(
+    chunk_size=400,
+    chunk_overlap=50
+    )
+
     doc_id = 0
     for filename, text in docs: 
-        chunks = chunk_text(text, chunk_size=400, chunk_overlap=50) # chunking
+        chunks = text_splitter.split_test(text) # chunking
         for idx, chunk in enumerate(chunks): # 각 청크와 해당 청크의 인덱스 가져옴
             doc_id += 1 # 인덱스 하나씩 증가 시키면서
             embedding = get_embedding(chunk) # 각 청크 임베딩 벡터 생성
